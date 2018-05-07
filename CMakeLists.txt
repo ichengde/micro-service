@@ -5,39 +5,39 @@ project(micro-service)
 # Configure required libraries ...
 if(UNIX) # Darwing or Linux
 
-    find_package(Boost REQUIRED COMPONENTS system thread log program_options chrono)
-    find_package(Threads REQUIRED)
+  find_package(Boost REQUIRED COMPONENTS system thread log program_options chrono)
+  find_package(Threads REQUIRED)
 
-    if(APPLE)
-        # Prefer a homebrew version of OpenSSL over the one in /usr/lib
-	    file(GLOB OPENSSL_ROOT_DIR /usr/local/Cellar/openssl/*)
-        # Prefer the latest (make the latest one first)
-	    list(REVERSE OPENSSL_ROOT_DIR)
+  if(APPLE)
+    # Prefer a homebrew version of OpenSSL over the one in /usr/lib
+    file(GLOB OPENSSL_ROOT_DIR /usr/local/Cellar/openssl/*)
+    # Prefer the latest (make the latest one first)
+    list(REVERSE OPENSSL_ROOT_DIR)
 
-        find_package(OpenSSL 1.0.2 REQUIRED)
-        set(OPENSSL_VERSION "1.0.2f")
-    else()
-        find_package(OpenSSL 1.0.1 REQUIRED)
-        set(OPENSSL_VERSION "1.0.1")
-    endif()
+    find_package(OpenSSL 1.0.2 REQUIRED)
+    set(OPENSSL_VERSION "1.0.2f")
+  else()
+    find_package(OpenSSL 1.0.1 REQUIRED)
+    set(OPENSSL_VERSION "1.0.1")
+  endif()
 
 elseif(WIN32) # Windows systems including Win64.
-    message(FATAL_ERROR "-- Windows is not supported for now.")
+  message(FATAL_ERROR "-- Windows is not supported for now.")
 else()
-    message(FATAL_ERROR "-- Unsupported platform sorry! :( ")
+  message(FATAL_ERROR "-- Unsupported platform sorry! :( ")
 endif()
 
 # Configure compiler options ...
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 
-    message("-- configuring clang options")
-    set(CMAKE_CXX_FLAGS "-arch x86_64 -std=c++11 -stdlib=libc++ -DBOOST_LOG_DYN_LINK -Wno-deprecated-declarations")
+  message("-- configuring clang options")
+  set(CMAKE_CXX_FLAGS "-arch x86_64 -std=c++11 -stdlib=libc++ -DBOOST_LOG_DYN_LINK -Wno-deprecated-declarations")
 
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
 
-    message("-- configuring gcc options")
+  message("-- configuring gcc options")
 
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11 -DBOOST_LOG_DYN_LINK")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11 -DBOOST_LOG_DYN_LINK")
 
 endif()
 
@@ -45,9 +45,9 @@ endif()
 
 # source files ...
 add_executable(${PROJECT_NAME} ./source/main.cpp
-                               ./source/microsvc_controller.cpp
-                               ./source/foundation/network_utils.cpp
-                               ./source/foundation/basic_controller.cpp)
+  ./source/microsvc_controller.cpp
+  ./source/foundation/network_utils.cpp
+  ./source/foundation/basic_controller.cpp)
 
 # headers search paths ...
 set(CPPRESTSDK_INCLUDE_DIR "/usr/include")
@@ -57,15 +57,15 @@ set(HEADER_SEARCH_PATHS ${CPPRESTSDK_INCLUDE_DIR} ${MICROSERVICE_INCLUDE_DIR} ${
 
 # library search paths ...
 if(APPLE)
-    set(OPENSSL_LIBS "/usr/local/Cellar/openssl/${OPENSSL_VERSION}/lib/libssl.1.0.0.dylib;/usr/local/Cellar/openssl/${OPENSSL_VERSION}/lib/libcrypto.1.0.0.dylib")
-    set(CPPRESTSDK_LIBRARY "${PROJECT_SOURCE_DIR}/libs/cpprestsdk/build.release/Binaries/libcpprest.a")
+  set(OPENSSL_LIBS "/usr/local/Cellar/openssl/${OPENSSL_VERSION}/lib/libssl.1.0.0.dylib;/usr/local/Cellar/openssl/${OPENSSL_VERSION}/lib/libcrypto.1.0.0.dylib")
+  set(CPPRESTSDK_LIBRARY "${PROJECT_SOURCE_DIR}/libs/cpprestsdk/build.release/Binaries/libcpprest.a")
 
-    set(LIBRARIES_SEARCH_PATHS ${OPENSSL_LIBS} ${Boost_LIBRARIES} ${CPPRESTSDK_LIBRARY})
+  set(LIBRARIES_SEARCH_PATHS ${OPENSSL_LIBS} ${Boost_LIBRARIES} ${CPPRESTSDK_LIBRARY})
 else()
-    set(OPENSSL_LIBS "${OPENSSL_LIBRARIES}")
-    set(CPPRESTSDK_LIBRARY "/usr/lib/x86_64-linux-gnu/libcpprest.so")
+  set(OPENSSL_LIBS "${OPENSSL_LIBRARIES}")
+  set(CPPRESTSDK_LIBRARY "/usr/lib/x86_64-linux-gnu/libcpprest.so")
 
-    set(LIBRARIES_SEARCH_PATHS ${CPPRESTSDK_LIBRARY} ${OPENSSL_LIBS} ${Boost_LIBRARIES})
+  set(LIBRARIES_SEARCH_PATHS ${CPPRESTSDK_LIBRARY} ${OPENSSL_LIBS} ${Boost_LIBRARIES})
 endif()
 
 message(BOOST_LIBS " ${Boost_LIBRARIES}")
@@ -75,10 +75,24 @@ message(LIBRARIES_SEARCH_PATHS " ${LIBRARIES_SEARCH_PATHS}")
 
 include_directories(${HEADER_SEARCH_PATHS})
 if (APPLE)
-    target_link_libraries(${PROJECT_NAME} "-framework CoreFoundation")
-    target_link_libraries(${PROJECT_NAME} "-framework Security")
-    target_link_libraries(${PROJECT_NAME} ${LIBRARIES_SEARCH_PATHS})
-    set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "-W1, -F/Library/Frameworks")
+  target_link_libraries(${PROJECT_NAME} "-framework CoreFoundation")
+  target_link_libraries(${PROJECT_NAME} "-framework Security")
+  target_link_libraries(${PROJECT_NAME} ${LIBRARIES_SEARCH_PATHS})
+  set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "-W1, -F/Library/Frameworks")
 else()
-    target_link_libraries(${PROJECT_NAME} ${LIBRARIES_SEARCH_PATHS})
+  target_link_libraries(${PROJECT_NAME} ${LIBRARIES_SEARCH_PATHS})
 endif()
+
+
+# ...but only make it a dependency of the project if the ctags program
+# is available, else it will fail to build on Windows.
+# find_program(CtAGS_PATH ctags)
+# if(CTAGS_PATH)
+#  message(STATUS "Found ctags: ${CTAGS_PATH}")
+
+#  set_source_files_properties( tags PROPERTIES GENERATED true)
+#  add_custom_command ( OUTPUT tags
+#    COMMAND ctags -R --c++-kinds=+p --fields=+iaS --extra=+q
+#    ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
+#  add_executable ( MyProjectOutput tags )
+# endif(CTAGS_PATH)
