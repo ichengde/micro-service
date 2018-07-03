@@ -1,4 +1,3 @@
-
 #include <std_micro_service.hpp>
 #include "microsvc_controller.hpp"
 #include <iostream>
@@ -16,12 +15,18 @@ void MicroserviceController::initRestOpHandlers() {
 void MicroserviceController::handleGet(http_request message) {
     auto path = requestPath(message);
     if (!path.empty()) {
-        if (path[0] == "service" && path[1] == "test") {
-            auto response = json::value::object();
-            response["version"] = json::value::string("0.1.1");
-            response["status"] = json::value::string("ready!");
-            message.reply(status_codes::OK, response);
+        int i = 0;
+        auto resp = json::value::array();
+        std::vector<utility::string_t>::iterator it;
+        for(it = path.begin(); it != path.end(); it++,i++)    {
+            resp[i] = json::value::string(*it);
         }
+        message.reply(status_codes::OK, resp);
+    } else { 
+        auto response = json::value::object();
+        response["version"] = json::value::string("0.1.1");
+        response["status"] = json::value::string("ready!");
+        message.reply(status_codes::OK, response);
     }
 }
 

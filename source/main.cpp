@@ -13,7 +13,7 @@ int main(int argc, const char * argv[]) {
     InterruptHandler::hookSIGINT();
 
     MicroserviceController server;
-    server.setEndpoint("http://host_auto_ip4:6502/v1/chegde/api");
+    server.setEndpoint("http://host_auto_ip4:5525/");
     
     try {
         // wait for server initialization...
